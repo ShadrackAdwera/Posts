@@ -41,7 +41,8 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use('/graphql', graphqlHTTP({
     schema: graphqlSchema,
-    rootValue: graphqlResolver
+    rootValue: graphqlResolver,
+    graphiql: true
 }))
 
 app.use((req, res, next) => {
