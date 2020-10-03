@@ -4,6 +4,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const { graphqlHTTP } = require('express-graphql')
+
+const graphqlSchema = require('./graphql/schema')
+const graphqlResolver = require('./graphql/resolver')
 
 const app = express();
 
@@ -34,6 +38,11 @@ app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
 );
 app.use('/images', express.static(path.join(__dirname, 'images')));
+
+app.use('/graphql', graphqlHTTP({
+    schema: graphqlSchema,
+    rootValue: graphqlResolver
+}))
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
