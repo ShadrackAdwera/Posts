@@ -159,4 +159,25 @@ module.exports = {
       updatedAt: createdPost.updatedAt.toISOString(),
     };
   },
+  posts: async (args, req) => {
+    const totalPosts
+    const allPosts
+    if(!req.isAuth) {
+      const error = new Error('You are not authenticated!!')
+      error.code = 401
+      throw error
+    }
+    try {
+      totalPosts = await Post.find().countDocuments()
+      allPosts = await Post.find().sort({createdAt: -1}).populate('creator')
+    } catch (error) {
+      throw new Error('Unable to fetch posts')
+    }
+    return { posts: allPosts.map(post=>{
+      return {...post._doc, 
+        _id: post._id.toString(), 
+        createdAt: post.createdAt.toISOString(), 
+        updatedAt: post.updatedAt.toISOString()}
+    }), totalPosts: totalPosts }
+  }
 };
