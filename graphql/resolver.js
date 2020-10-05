@@ -93,8 +93,14 @@ module.exports = {
     return { token: token, userId: existingUser._id.toString() };
   },
   createPost: async (args, req) => {
+    if(!req.isAuth) {
+      const error = new Error('You are not authenticated!!')
+      error.code = 401
+      throw error
+    }
     const { title, content, imageUrl } = args.postInput;
     let createdPost;
+    let foundUser
     const errors = [];
     if (
       validator.default.isEmpty(title) ||
@@ -116,10 +122,22 @@ module.exports = {
       throw error;
     }
 
+    try {
+      foundUser = await User.findById(req.userId)
+    } catch (error) {
+      throw new Error('Unable to fetch user')
+    }
+    if(!foundUser) {
+      const error = new Error('User does not exist!');
+      error.code = 422;
+      throw error;
+    }
+
     const newPost = new Post({
       title,
       content,
       imageUrl,
+      creator: foundUser
     });
 
     try {
@@ -128,6 +146,11 @@ module.exports = {
       throw new Error('Unable to create post, provide all fields');
     }
     //Add posts to user - transactions
+    try {
+      foundUser.posts.push(newPost)
+    } catch (error) {
+      throw new Error('Unable to add posts to user')
+    }
     return {
       ...createdPost._doc,
       _id: createdPost._id.toString(),
