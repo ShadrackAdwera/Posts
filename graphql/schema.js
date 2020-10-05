@@ -30,7 +30,7 @@ input userInfo {
 
 type AuthData {
     token: String!
-    userId: STring
+    userId: String!
 }
 
 type rootQuery {
