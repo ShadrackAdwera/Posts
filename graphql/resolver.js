@@ -93,14 +93,14 @@ module.exports = {
     return { token: token, userId: existingUser._id.toString() };
   },
   createPost: async (args, req) => {
-    if(!req.isAuth) {
-      const error = new Error('You are not authenticated!!')
-      error.code = 401
-      throw error
+    if (!req.isAuth) {
+      const error = new Error('You are not authenticated!!');
+      error.code = 401;
+      throw error;
     }
     const { title, content, imageUrl } = args.postInput;
     let createdPost;
-    let foundUser
+    let foundUser;
     const errors = [];
     if (
       validator.default.isEmpty(title) ||
@@ -123,11 +123,11 @@ module.exports = {
     }
 
     try {
-      foundUser = await User.findById(req.userId)
+      foundUser = await User.findById(req.userId);
     } catch (error) {
-      throw new Error('Unable to fetch user')
+      throw new Error('Unable to fetch user');
     }
-    if(!foundUser) {
+    if (!foundUser) {
       const error = new Error('User does not exist!');
       error.code = 422;
       throw error;
@@ -137,7 +137,7 @@ module.exports = {
       title,
       content,
       imageUrl,
-      creator: foundUser
+      creator: foundUser,
     });
 
     try {
@@ -147,10 +147,10 @@ module.exports = {
     }
     //Add posts to user - transactions
     try {
-      foundUser.posts.push(newPost)
-      await foundUser.save()
+      foundUser.posts.push(newPost);
+      await foundUser.save();
     } catch (error) {
-      throw new Error('Unable to add posts to user')
+      throw new Error('Unable to add posts to user');
     }
     return {
       ...createdPost._doc,
@@ -159,25 +159,40 @@ module.exports = {
       updatedAt: createdPost.updatedAt.toISOString(),
     };
   },
-  posts: async (args, req) => {
-    let totalPosts
-    let allPosts
-    if(!req.isAuth) {
-      const error = new Error('You are not authenticated!!')
-      error.code = 401
-      throw error
+  posts: async ({ page }, req) => {
+    let totalPosts;
+    let allPosts;
+    if (!req.isAuth) {
+      const error = new Error('You are not authenticated!!');
+      error.code = 401;
+      throw error;
     }
+
+    if (!page) {
+      page = 1;
+    }
+    const perPage = 2;
+
     try {
-      totalPosts = await Post.find().countDocuments()
-      allPosts = await Post.find().sort({createdAt: -1}).populate('creator')
+      totalPosts = await Post.find().countDocuments();
+      allPosts = await Post.find()
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * perPage)
+        .limit(perPage)
+        .populate('creator');
     } catch (error) {
-      throw new Error('Unable to fetch posts')
+      throw new Error('Unable to fetch posts');
     }
-    return { posts: allPosts.map(post=>{
-      return {...post._doc, 
-        _id: post._id.toString(), 
-        createdAt: post.createdAt.toISOString(), 
-        updatedAt: post.updatedAt.toISOString()}
-    }), totalPosts: totalPosts }
-  }
+    return {
+      posts: allPosts.map((post) => {
+        return {
+          ...post._doc,
+          _id: post._id.toString(),
+          createdAt: post.createdAt.toISOString(),
+          updatedAt: post.updatedAt.toISOString(),
+        };
+      }),
+      totalPosts: totalPosts,
+    };
+  },
 };
