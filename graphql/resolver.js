@@ -125,7 +125,7 @@ module.exports = {
     try {
       createdPost = await newPost.save();
     } catch (error) {
-      throw new Error('Unable to create post');
+      throw new Error('Unable to create post, provide all fields');
     }
     //Add posts to user - transactions
     return {
