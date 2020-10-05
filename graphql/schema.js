@@ -28,8 +28,13 @@ input userInfo {
     password: String!
 }
 
+type AuthData {
+    token: String!
+    userId: STring
+}
+
 type rootQuery {
-    hello: String
+    login(email:String!, password: String!): AuthData!
 }
 
 type rootMutation {
