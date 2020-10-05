@@ -160,8 +160,8 @@ module.exports = {
     };
   },
   posts: async (args, req) => {
-    const totalPosts
-    const allPosts
+    let totalPosts
+    let allPosts
     if(!req.isAuth) {
       const error = new Error('You are not authenticated!!')
       error.code = 401
