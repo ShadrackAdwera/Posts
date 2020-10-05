@@ -17,7 +17,10 @@ module.exports = {
             errors.push({message: 'Password length is too short!'})
         }
         if(errors.length>0) {
-            throw new Error('Invalid inputs')
+            const error = new Error('Invalid inputs')
+            error.data = errors
+            error.code = 422
+            throw error
         }
         
         let existingUser
