@@ -148,6 +148,7 @@ module.exports = {
     //Add posts to user - transactions
     try {
       foundUser.posts.push(newPost)
+      await foundUser.save()
     } catch (error) {
       throw new Error('Unable to add posts to user')
     }
