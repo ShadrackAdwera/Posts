@@ -3,6 +3,7 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
+const Post = require('../models/post');
 
 module.exports = {
   createUser: async (args, req) => {
@@ -90,5 +91,48 @@ module.exports = {
       throw new Error('Token generation failed!');
     }
     return { token: token, userId: existingUser._id.toString() };
+  },
+  createPost: async (args, req) => {
+    const { title, content, imageUrl } = args.postInput;
+    let createdPost;
+    const errors = [];
+    if (
+      validator.default.isEmpty(title) ||
+      !validator.default.isLength(title, { min: 5 })
+    ) {
+      errors.push({ message: 'Title is too short(min 5 characters)' });
+    }
+    if (
+      validator.default.isEmpty(content) ||
+      !validator.default.isLength(content, { min: 8 })
+    ) {
+      errors.push({ message: 'Content length is too short(min 8 characters)' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Invalid inputs');
+      error.data = errors;
+      error.code = 422;
+      throw error;
+    }
+
+    const newPost = new Post({
+      title,
+      content,
+      imageUrl,
+    });
+
+    try {
+      createdPost = await newPost.save();
+    } catch (error) {
+      throw new Error('Unable to create post');
+    }
+    //Add posts to user - transactions
+    return {
+      ...createdPost._doc,
+      _id: createdPost._id.toString(),
+      createdAt: createdPost.createdAt.toISOString(),
+      updatedAt: createdPost.updatedAt.toISOString(),
+    };
   },
 };
