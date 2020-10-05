@@ -28,6 +28,12 @@ input userInfo {
     password: String!
 }
 
+input PostInfo {
+    title: String!
+    content: String!
+    imageUrl: String!
+}
+
 type AuthData {
     token: String!
     userId: String!
@@ -39,6 +45,7 @@ type rootQuery {
 
 type rootMutation {
     createUser(userInput: userInfo): User!
+    createPost(postInput: PostInfo): Post!
 }
 
 schema {
