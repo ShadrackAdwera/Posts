@@ -34,6 +34,11 @@ input PostInfo {
     imageUrl: String!
 }
 
+type PostData {
+    posts: [Post!]!
+    totalPosts: Int!
+}
+
 type AuthData {
     token: String!
     userId: String!
@@ -41,6 +46,7 @@ type AuthData {
 
 type rootQuery {
     login(email:String!, password: String!): AuthData!
+    posts: PostData!
 }
 
 type rootMutation {
