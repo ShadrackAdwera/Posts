@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 const Post = require('../models/post');
+const { clearImage } = require('../utils/file')
 
 module.exports = {
   createUser: async (args, req) => {
@@ -216,8 +217,7 @@ module.exports = {
       updatedAt: post.updatedAt.toISOString(),
     };
   },
-  updatePost: async (args, req) => {
-    const { id, postInput } = args;
+  updatePost: async ({ id, postInput }, req) => {
     if (!req.isAuth) {
       const error = new Error('You are not authenticated!!');
       error.code = 401;
@@ -239,14 +239,14 @@ module.exports = {
     }
     const errors = [];
     if (
-      validator.default.isEmpty(title) ||
-      !validator.default.isLength(title, { min: 5 })
+      validator.default.isEmpty(postInput.title) ||
+      !validator.default.isLength(postInput.title, { min: 5 })
     ) {
       errors.push({ message: 'Title is too short(min 5 characters)' });
     }
     if (
-      validator.default.isEmpty(content) ||
-      !validator.default.isLength(content, { min: 8 })
+      validator.default.isEmpty(postInput.content) ||
+      !validator.default.isLength(postInput.content, { min: 8 })
     ) {
       errors.push({ message: 'Content length is too short(min 8 characters)' });
     }
@@ -271,4 +271,31 @@ module.exports = {
       updatedAt: updatedPost.updatedAt.toISOString(),
     };
   },
+  deletePost: async({id}, req) => {
+    if (!req.isAuth) {
+      const error = new Error('You are not authenticated!!');
+      error.code = 401;
+      throw error;
+    }
+    const foundPost = await Post.findById(id)
+
+    if(!foundPost) {
+      const error = new Error('Post does not exist!');
+      error.code = 404;
+      throw error;
+    }
+    if(foundPost.creator.toString() !== req.userId.toString()) {
+      const error = new Error('You are not authorized to perform this action!');
+      error.code = 403;
+      throw error;
+    }
+
+    clearImage(foundPost.imageUrl)
+    await Post.findByIdAndRemove(id)
+
+    const user = await User.findById(req.userId)
+    user.posts.pull(id)
+    await user.save()
+    return true
+  }
 };

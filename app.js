@@ -1,5 +1,4 @@
 const path = require('path');
-const fs = require('fs');
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -10,6 +9,7 @@ const { graphqlHTTP } = require('express-graphql');
 const graphqlSchema = require('./graphql/schema');
 const graphqlResolver = require('./graphql/resolver');
 const auth = require('./middleware/auth');
+const { clearImage } = require('./utils/file')
 
 const app = express();
 
@@ -64,7 +64,7 @@ app.put('/add-image', (req, res, next) => {
     return res.status(200).json({ message: 'No file provided' });
   }
   if (req.body.oldPath) {
-    clearImage(req.body.oldPath);
+    clearImage(req.body.oldPath)
   }
   return res
     .status(201)
@@ -107,8 +107,3 @@ mongoose
     app.listen(5000);
   })
   .catch((err) => console.log(err.message));
-
-const clearImage = (filePath) => {
-  filePath = path.join(__dirname, '..', filePath);
-  fs.unlink(filePath, (err) => console.log(err));
-};
