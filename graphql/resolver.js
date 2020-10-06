@@ -203,7 +203,7 @@ module.exports = {
       throw error;
     }
     const post = await Post.findById(id).populate('creator')
-    if(!post || post.length===0) {
+    if(!post) {
       const error = new Error('No posts found!');
       error.code = 404;
       throw error;
