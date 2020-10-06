@@ -47,6 +47,7 @@ type AuthData {
 type rootQuery {
     login(email:String!, password: String!): AuthData!
     posts(page:Int): PostData!
+    post(id:ID!): Post!
 }
 
 type rootMutation {

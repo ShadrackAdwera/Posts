@@ -54,7 +54,12 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(auth);
+
 app.put('/add-image', (req, res, next) => {
+  if(!req.isAuth) {
+    throw new Error('Not authenticated!')
+  }
   if (!req.file) {
     return res.status(200).json({ message: 'No file provided' });
   }
@@ -65,8 +70,6 @@ app.put('/add-image', (req, res, next) => {
     .status(201)
     .json({ message: 'File stored!', filePath: req.file.path });
 });
-
-app.use(auth);
 
 app.use(
   '/graphql',
