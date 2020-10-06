@@ -195,15 +195,15 @@ module.exports = {
       totalPosts: totalPosts,
     };
   },
-  post: async(args, req)=>{
-    const { id } = args
+  post: async (args, req) => {
+    const { id } = args;
     if (!req.isAuth) {
       const error = new Error('You are not authenticated!!');
       error.code = 401;
       throw error;
     }
-    const post = await Post.findById(id).populate('creator')
-    if(!post) {
+    const post = await Post.findById(id).populate('creator');
+    if (!post) {
       const error = new Error('No posts found!');
       error.code = 404;
       throw error;
@@ -213,8 +213,62 @@ module.exports = {
       ...post._doc,
       id: post._id.toString(),
       createdAt: post.createdAt.toISOString(),
-      updatedAt: post.updatedAt.toISOString()
+      updatedAt: post.updatedAt.toISOString(),
+    };
+  },
+  updatePost: async (args, req) => {
+    const { id, postInput } = args;
+    if (!req.isAuth) {
+      const error = new Error('You are not authenticated!!');
+      error.code = 401;
+      throw error;
+    }
+    const foundPost = await Post.findById(id).populate('creator');
+    if (!foundPost) {
+      const error = new Error('Post not found!');
+      error.code = 404;
+      throw error;
     }
 
-  }
+    if (foundPost.creator._id.toString() !== req.userId.toString()) {
+      const error = new Error(
+        'You are not authorized to perform this action!!'
+      );
+      error.code = 403;
+      throw error;
+    }
+    const errors = [];
+    if (
+      validator.default.isEmpty(title) ||
+      !validator.default.isLength(title, { min: 5 })
+    ) {
+      errors.push({ message: 'Title is too short(min 5 characters)' });
+    }
+    if (
+      validator.default.isEmpty(content) ||
+      !validator.default.isLength(content, { min: 8 })
+    ) {
+      errors.push({ message: 'Content length is too short(min 8 characters)' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Invalid inputs');
+      error.data = errors;
+      error.code = 422;
+      throw error;
+    }
+
+    foundPost.title = postInput.title;
+    foundPost.content = postInput.content;
+    if (postInput.imageUrl !== 'undefined') {
+      foundPost.imageUrl = postInput.imageUrl;
+    }
+    const updatedPost = await foundPost.save();
+    return {
+      ...updatedPost._doc,
+      _id: updatedPost._id.toString(),
+      createdAt: updatedPost.createdAt.toISOString(),
+      updatedAt: updatedPost.updatedAt.toISOString(),
+    };
+  },
 };
