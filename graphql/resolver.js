@@ -311,5 +311,23 @@ module.exports = {
       throw error;
     }
     return { ...user._doc, _id: user._id.toString() }
-  } 
+  },
+  updateStatus: async({status}, req) => {
+    if (!req.isAuth) {
+      const error = new Error('You are not authenticated!!');
+      error.code = 401;
+      throw error;
+    }
+    const user = await User.findById(req.userId)
+    if(!user) {
+      const error = new Error('User does not exist!');
+      error.code = 404;
+      throw error;
+    }
+    user.status = status
+    await user.save()
+
+    return{ ...user._doc, _id: user._id.toString()}
+
+  }
 };
