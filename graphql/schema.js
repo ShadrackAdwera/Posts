@@ -48,6 +48,7 @@ type rootQuery {
     login(email:String!, password: String!): AuthData!
     posts(page:Int): PostData!
     post(id:ID!): Post!
+    user: User!
 }
 
 type rootMutation {
@@ -55,6 +56,7 @@ type rootMutation {
     createPost(postInput: PostInfo): Post!
     updatePost(id: ID!, postInput: PostInfo) : Post!
     deletePost(id: ID!): Boolean
+    updateStatus(status: String!): User!
 }
 
 schema {
